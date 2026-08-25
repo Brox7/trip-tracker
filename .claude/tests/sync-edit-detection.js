@@ -3,7 +3,7 @@ global.window={TRIP_DB:'https://x',TRIP_PATH:'p',addEventListener(){},
   TripAuth:{signedIn:()=>true,authToken:async()=>'t'}};
 global.navigator={onLine:false};        // keep writes queued so we can count them
 global.fetch=async()=>({ok:true,json:async()=>({}),text:async()=>''});
-const T=require('/Users/bhavesh/Documents/TLD/firebase-sync.js')||global.window.TripSync;
+const T=require(__dirname+'/../../firebase-sync.js')||global.window.TripSync;
 const S={expenses:[],cash:[],checklist:[],settings:{people:['A']},notes:'',days:{},removed:[],
   bookings:[{id:'b1',type:'flight',title:'HKT → BLR',cost:0}]};
 const Sync=global.window.TripSync;

@@ -51,6 +51,8 @@ window.TH_MAP = {{
   ]
 }};
 """
-open('/Users/bhavesh/Documents/TLD/map-data.js','w').write(out)
+import os
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+open(os.path.join(root, 'map-data.js'), 'w').write(out)
 print(f'rings kept {kept}/{len(rings)} | W {W:.0f} H {H:.0f} | bbox lon {lonMin:.2f}..{lonMax:.2f} lat {latMin:.2f}..{latMax:.2f}')
 print('bytes', len(out))
