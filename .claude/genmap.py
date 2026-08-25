@@ -1,6 +1,24 @@
-import json, math
+"""Bake Thailand's outline into map-data.js as SVG paths.
 
-f = json.load(open('tha50.json'))
+Needs tha50.json alongside this script: the Thailand feature from Natural
+Earth's 1:50m admin-0 countries set. It is a one-time download and is not
+kept in the repo, so this script only runs when you actually want to
+regenerate the map — map-data.js is committed and does not change.
+"""
+import json, math, os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+
+src = os.path.join(HERE, 'tha50.json')
+if not os.path.exists(src):
+    raise SystemExit(
+        'tha50.json not found next to genmap.py.\n'
+        'Download the Thailand feature from Natural Earth 1:50m admin-0 countries '
+        'and save it there. map-data.js is already committed, so you only need '
+        'this to change the map.')
+
+f = json.load(open(src))
 g = f['geometry']
 polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
 rings = [p[0] for p in polys]                      # outer ring of each polygon
@@ -51,8 +69,6 @@ window.TH_MAP = {{
   ]
 }};
 """
-import os
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-open(os.path.join(root, 'map-data.js'), 'w').write(out)
+open(os.path.join(ROOT, 'map-data.js'), 'w').write(out)
 print(f'rings kept {kept}/{len(rings)} | W {W:.0f} H {H:.0f} | bbox lon {lonMin:.2f}..{lonMax:.2f} lat {latMin:.2f}..{latMax:.2f}')
 print('bytes', len(out))
