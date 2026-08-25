@@ -1,7 +1,6 @@
-# Anything holding the real trip stays out of the repo.
-# The itinerary is not deployed either — it lives in the database behind
-# Google sign-in — but these local copies still describe the whole trip.
-trip-data.js
+# trip-backup.json is a full export of the live database — every booking,
+# the ledger, the checklist, the day plans. It is the offline copy if the
+# database is ever lost, and it never belongs in a public repo.
 trip-backup.json
 dist/
 
@@ -12,10 +11,6 @@ database.rules.json
 
 # Personal working notes: who owes whom, what is still unbooked, real amounts.
 PARKED.md
-
-# launchd job for the local dev server: hardcodes a home directory, and is
-# redundant now that the app is hosted. Kept on disk, out of the repo.
-.claude/*.plist
 
 .DS_Store
 node_modules/

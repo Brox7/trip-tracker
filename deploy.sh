@@ -1,10 +1,9 @@
 #!/bin/bash
 # Build a clean folder and publish it to Firebase Hosting.
 #
-# Deliberately NOT shipped: trip-data.js with your real itinerary. Now that the
-# trip lives in the database behind the trip key, the hosted files contain
-# nothing personal — so the public URL is safe to hand out. A new device opens
-# the app empty and fills itself once the key is pasted in.
+# The hosted files contain nothing personal: the trip lives in the database,
+# behind Google sign-in. A new device opens the app empty and fills itself
+# once someone on the allowlist signs in. The public URL is safe to hand out.
 set -e
 cd "$(dirname "$0")"
 
@@ -22,13 +21,6 @@ mkdir -p dist/vendor && cp vendor/*.js dist/vendor/   # pdf.js, pinned and cache
 cp manifest.json dist/
 mkdir -p dist/icons && cp icons/*.png dist/icons/
 sed "s/__BUILD__/$(date +%s)/" sw.js > dist/sw.js
-
-# stub so the <script> tag resolves instead of 404ing
-cat > dist/trip-data.js <<'STUB'
-/* Intentionally empty on the hosted site: the trip lives in the database.
-   Open the app, paste your trip key in Settings, and it fills itself. */
-window.TRIP_DATA = null;
-STUB
 
 echo "Shipping:"; ls -1 dist | sed 's/^/  /'; echo
 
@@ -50,7 +42,7 @@ import re, sys
 v = sys.argv[1]
 p = 'dist/index.html'
 s = open(p).read()
-s = re.sub(r'(href|src)="((?:app|pdf-import|styles|firebase-auth|firebase-sync|firebase-config|trip-data|map-data)\.(?:js|css))"',
+s = re.sub(r'(href|src)="((?:app|pdf-import|styles|firebase-auth|firebase-sync|firebase-config|map-data)\.(?:js|css))"',
            lambda m: f'{m.group(1)}="{m.group(2)}?v={v}"', s)
 open(p, 'w').write(s)
 print(f"  stamped assets with ?v={v}")

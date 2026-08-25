@@ -51,57 +51,6 @@ const DEFAULT_CHECKLIST = [
 const GROUP_ORDER = ['Documents','Money','Packing','Before leaving','In Thailand'];
 
 /* ============================== state ============================== */
-const FILE = (typeof window !== 'undefined' && window.TRIP_DATA) ? window.TRIP_DATA : null;
-const fileVersion = () => Number(FILE?.version) || 0;
-let updateReady = false;              // shipped trip file is newer than this browser's copy
-
-/* Adopt the shipped trip file. `prev` (if given) keeps what is genuinely
-   yours-in-this-browser: theme, ticked boxes, extra checklist items, notes. */
-function fromFile(prev) {
-  if (!FILE) return blank();
-  const f = JSON.parse(JSON.stringify(FILE));
-  const st = Object.assign(blank(), f, { settings: Object.assign(blank().settings, f.settings || {}) });
-  delete st.version;
-  st.dataVersion = fileVersion();
-  if (prev) {
-    /* device/personal preferences always stay local */
-    const keep = ['theme','base','rate','rateAuto','rateLive','rateFetched','rateProvider','me','lastQuick'];
-    keep.forEach(k => {                                   // an unset local value must not win over the file
-      const v = prev.settings?.[k];
-      if (v === undefined || v === null || v === '') return;
-      st.settings[k] = v;
-    });
-    /* a budget you set locally survives unless the file states one */
-    if (!Number(st.settings.budget) && Number(prev.settings?.budget)) {
-      st.settings.budget = prev.settings.budget;
-      st.settings.budgetCur = prev.settings.budgetCur || prev.settings.base || 'INR';
-    }
-    /* Your work outranks the file: rows you edited keep your version, rows you
-       deleted stay deleted, rows you added are carried over. Untouched rows take
-       the file's version so corrections still reach you. */
-    const removed = new Set(prev.removed || []);
-    ['bookings','expenses','cash'].forEach(k => {
-      const mine = new Map((prev[k] || []).map(x => [x.id, x]));
-      st[k] = st[k].filter(x => !removed.has(x.id))
-                   .map(x => { const l = mine.get(x.id); return (l && l.edited) ? l : x; });
-      const ids = new Set(st[k].map(x => x.id));
-      (prev[k] || []).forEach(x => { if (!ids.has(x.id) && !removed.has(x.id)) st[k].push(x); });
-    });
-    st.removed = [...removed];
-    const done = new Set((prev.checklist || []).filter(i => i.done).map(i => i.text));
-    st.checklist.forEach(i => { if (done.has(i.text)) i.done = true; });
-    const known = new Set(st.checklist.map(i => i.text));
-    const retired = new Set(FILE.retired || []);
-    (prev.checklist || []).forEach(i => {
-      if (known.has(i.text) || retired.has(i.text) || i.src === 'file') return;
-      st.checklist.push({ ...i });
-    });
-    if (!String(st.notes || '').trim() && prev.notes) st.notes = prev.notes;
-    if (!Object.keys(st.days || {}).length && prev.days) st.days = prev.days;
-  }
-  return st;
-}
-
 let S = load();
 
 function blank() {
@@ -120,13 +69,10 @@ function blank() {
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return fromFile(null);
+    if (!raw) return blank();                       // a fresh device fills itself from the database
     const d = JSON.parse(raw);
-    const st = Object.assign(blank(), d, { settings: Object.assign(blank().settings, d.settings||{}) });
-    const seen = Math.max(Number(st.dataVersion)||0, Number(st.dismissedVersion)||0);
-    if (fileVersion() > seen) updateReady = true;
-    return st;
-  } catch (e) { console.warn('unreadable save, starting fresh', e); return fromFile(null); }
+    return Object.assign(blank(), d, { settings: Object.assign(blank().settings, d.settings||{}) });
+  } catch (e) { console.warn('unreadable save, starting fresh', e); return blank(); }
 }
 function save() {
   localStorage.setItem(KEY, JSON.stringify(S));
@@ -1714,33 +1660,6 @@ function mergeIn(incoming) {
   });
   return added;
 }
-const enc = o => btoa(unescape(encodeURIComponent(JSON.stringify(o))));
-const dec = t => JSON.parse(decodeURIComponent(escape(atob(String(t).trim()))));
-
-$('#btnCopyCode').onclick = async () => {
-  /* bookings come from the shared trip file, so a share code only carries the ledger */
-  const payload = { v:1, from:meName(), expenses:S.expenses, cash:S.cash || [] };
-  const code = 'THTRIP1:' + enc(payload);
-  try {
-    await navigator.clipboard.writeText(code);
-    toast(`Share code copied — ${S.expenses.length} expenses`);
-  } catch (e) {
-    openModal('Share code', [{ key:'code', label:'Copy this and send it to the group', type:'textarea', span:true, def:code }], null, () => {});
-  }
-};
-$('#btnPasteCode').onclick = () => {
-  openModal('Paste a share code', [{ key:'code', label:'Share code from someone in the group', type:'textarea', span:true, ph:'THTRIP1:…' }], null, d => {
-    try {
-      const raw = String(d.code || '').trim().replace(/^THTRIP1:/, '');
-      if (!raw) return;
-      const inc = dec(raw);
-      const n = mergeIn(inc);
-      save(); render();
-      toast(n ? `Merged ${n} new entr${n===1?'y':'ies'} from ${inc.from || 'them'}` : 'Nothing new in that code');
-    } catch (err) { alert('That does not look like a share code: ' + err.message); }
-  });
-};
-
 $('#btnImport').onclick = () => $('#fileInput').click();
 $('#fileInput').onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -1761,11 +1680,6 @@ $('#fileInput').onchange = e => {
     } catch (err) { alert('Could not read that file: ' + err.message); }
   };
   r.readAsText(f); e.target.value = '';
-};
-$('#btnFromFile').onclick = () => {
-  if (!FILE) return alert('trip-data.js was not loaded, so there is nothing to pull in.');
-  if (!confirm(`Reload the trip file (version ${fileVersion()})? Bookings, expenses and trip settings are replaced by the file. Ticked checklist items and notes are kept.`)) return;
-  S = fromFile(S); updateReady = false; save(); applyTheme(); render(); toast('Trip data reloaded');
 };
 $('#btnReset').onclick = () => {
   if (!confirm('Erase everything and start a clean trip?')) return;
@@ -1921,27 +1835,11 @@ function renderIdentityBar() {
   return true;
 }
 
-/* ---------------- trip-file update bar ---------------- */
+/* The only bar left here asks who this device belongs to, and even that is
+   skipped when sign-in already answers it. The app-version prompt is separate
+   and inserts itself after this element. */
 function renderUpdateBar() {
-  const el = $('#updateBar');
-  if (!updateReady) { if (!renderIdentityBar()) el.innerHTML = ''; return; }
-  const b = (FILE.bookings||[]).length, e = (FILE.expenses||[]).length;
-  el.innerHTML = `<div class="updatebar">
-    ${ico('download')}
-    <span class="msg"><b>Updated trip data is available</b>
-      <small>The project file has version ${fileVersion()} — ${b} booking${b===1?'':'s'} and ${e} expense${e===1?'':'s'}.
-      Loading it brings in new bookings and corrections. Anything you edited, added or deleted
-      yourself is kept, along with your ticked items and notes.</small></span>
-    <span class="acts">
-      <button class="btn ghost" id="updLater">Not now</button>
-      <button class="btn brand" id="updLoad">Load it</button>
-    </span></div>`;
-  $('#updLoad').onclick = () => {
-    S = fromFile(S); updateReady = false; save(); applyTheme(); render(); toast('Trip data loaded');
-  };
-  $('#updLater').onclick = () => {
-    S.dismissedVersion = fileVersion(); updateReady = false; save(); renderUpdateBar();
-  };
+  if (!renderIdentityBar()) $('#updateBar').innerHTML = '';
 }
 
 /* One-time move to the single ledger: fill in who paid each known booking, and

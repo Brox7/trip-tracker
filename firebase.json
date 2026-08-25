@@ -41,7 +41,7 @@
         ]
       },
       {
-        "source": "/@(app|pdf-import|firebase-auth|firebase-sync|firebase-config|trip-data).js",
+        "source": "/@(app|pdf-import|firebase-auth|firebase-sync|firebase-config).js",
         "headers": [
           {
             "key": "Cache-Control",

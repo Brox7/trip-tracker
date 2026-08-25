@@ -240,20 +240,20 @@
         </div>
         <div class="card">
           <div class="card-head"><h2>Your data</h2></div>
-          <p class="hint block">Everything lives in this browser only — nothing is uploaded. Export a backup before clearing browser data, and import it on your phone to carry the trip with you.</p>
+          <p class="hint block">The trip lives in the database and syncs to everyone. This browser keeps its own copy so the app works offline. Export a JSON backup if you want a snapshot you hold yourself.</p>
           <div class="btn-row">
             <button class="btn" id="btnExport"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Export JSON</span></button>
             <button class="btn" id="btnImport"><svg class="ic" viewBox="0 0 24 24"><use href="#i-upload"/></svg><span>Import JSON</span></button>
             <button class="btn" id="btnCSV"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sheet"/></svg><span>Expenses CSV</span></button>
-            <button class="btn" id="btnFromFile"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Reload trip file</span></button>
             <button class="btn danger" id="btnReset"><svg class="ic" viewBox="0 0 24 24"><use href="#i-trash"/></svg><span>Erase all</span></button>
           </div>
           <input type="file" id="fileInput" accept=".json" hidden>
         </div>
         <div class="card">
           <div class="card-head"><h2>Live sync</h2><span class="hint" id="syncStatus">off</span></div>
-          <p class="hint block" id="syncBlurb">Everyone who holds the trip key shares one live ledger.
-            Log an expense and it appears on the others' phones in about a second.</p>
+          <p class="hint block" id="syncBlurb">The five of you share one live ledger, and access is
+            simply who you are signed in as. Log an expense and it appears on the others' phones
+            in about a second.</p>
           <div id="signInBox">
             <div id="whoami" class="whoami"></div>
             <div id="gsiButton"></div>
@@ -264,15 +264,6 @@
           <pre id="syncDiag" class="syncdiag"></pre>
           <div id="syncSetup">
             <div id="meRow"></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2>Share with the group</h2><span class="hint">no account needed</span></div>
-          <p class="hint block">Copy a share code and paste it in the group chat. Whoever pastes it into
-            their own copy gets your expenses and withdrawals merged in — nothing is overwritten.</p>
-          <div class="btn-row">
-            <button class="btn" id="btnCopyCode"><svg class="ic" viewBox="0 0 24 24"><use href="#i-upload"/></svg><span>Copy my share code</span></button>
-            <button class="btn" id="btnPasteCode"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Paste a share code</span></button>
           </div>
         </div>
         <div class="card">
@@ -355,7 +346,6 @@
 <div class="toast" id="toast" hidden></div>
 <script src="firebase-config.js"></script>
 <script src="map-data.js"></script>
-<script src="trip-data.js"></script>
 <script src="firebase-auth.js"></script>
 <script src="firebase-sync.js"></script>
 <script src="pdf-import.js"></script>
