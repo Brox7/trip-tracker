@@ -13,6 +13,10 @@ database.rules.json
 # Personal working notes: who owes whom, what is still unbooked, real amounts.
 PARKED.md
 
+# launchd job for the local dev server: hardcodes a home directory, and is
+# redundant now that the app is hosted. Kept on disk, out of the repo.
+.claude/*.plist
+
 .DS_Store
 node_modules/
 *.log
