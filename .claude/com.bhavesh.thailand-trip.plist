@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.bhavesh.thailand-trip</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/bhavesh/Documents/TLD/.claude/serve.js</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/bhavesh/Documents/TLD</string>
+
+  <!-- start at login, and bring it straight back if it ever exits -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- keep it out of App Nap so it answers immediately after a wake -->
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/bhavesh/Library/Logs/thailand-trip.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/bhavesh/Library/Logs/thailand-trip.log</string>
+</dict>
+</plist>

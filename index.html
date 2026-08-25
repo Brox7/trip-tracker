@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Thailand Trip — Tracker</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF385C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Thailand">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>">
+</head>
+<body>
+
+<!-- ================= icon sprite ================= -->
+<svg class="sprite" aria-hidden="true">
+  <defs>
+    <g id="i-grid"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></g>
+    <g id="i-wallet"><path d="M3 8h15a3 3 0 0 1 3 3v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/><path d="M3 8V6.5A2.5 2.5 0 0 1 5.5 4H16v4"/><circle cx="17" cy="14" r="1.3"/></g>
+    <g id="i-plane"><path d="M10.5 19.5l1.4-4.6 8-2.4a1.6 1.6 0 0 0 0-3l-8-2.4-1.4-4.6a1 1 0 0 0-1.9.2l-.6 5.6-4.6 1.4a1.3 1.3 0 0 0 0 2.6l4.6 1.4.6 5.6a1 1 0 0 0 1.9.2z"/></g>
+    <g id="i-calendar"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="8.5" cy="14" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r=".9" fill="currentColor" stroke="none"/></g>
+    <g id="i-check"><path d="M5 12.5l4.2 4.3L19 7.3"/></g>
+    <g id="i-check-circle"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3l2.4 2.4 4.6-5"/></g>
+    <g id="i-sliders"><path d="M4 7h5M13 7h7M4 12.5h11M19 12.5h1M4 18h3M11 18h9"/><circle cx="11" cy="7" r="2"/><circle cx="17" cy="12.5" r="2"/><circle cx="9" cy="18" r="2"/></g>
+    <g id="i-bed"><path d="M3.5 19v-8M3.5 14.5h17V19M3.5 11h13a4 4 0 0 1 4 4"/><path d="M7 11V8h4.5v3"/></g>
+    <g id="i-boat"><path d="M3.5 14.5h17l-2 4.3a2 2 0 0 1-1.8 1.2H7.3a2 2 0 0 1-1.8-1.2z"/><path d="M12 14.5V3.5l6.4 8.4H12"/></g>
+    <g id="i-car"><path d="M4.5 15.5l1.4-5.2A2.5 2.5 0 0 1 8.3 8.5h7.4a2.5 2.5 0 0 1 2.4 1.8l1.4 5.2"/><path d="M3.5 15.5h17V19h-2.8v-1.6H6.3V19H3.5z"/><circle cx="7.5" cy="17" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="17" r=".9" fill="currentColor" stroke="none"/></g>
+    <g id="i-ticket"><path d="M4 8.5h16v2.6a2 2 0 0 0 0 3.8v2.6H4v-2.6a2 2 0 0 0 0-3.8z"/><path d="M12 9.5v1.5M12 13v1.5M12 16.5V18"/></g>
+    <g id="i-bag"><path d="M5.8 8h12.4l1 12.2H4.8z"/><path d="M9 8V6.2a3 3 0 0 1 6 0V8"/></g>
+    <g id="i-bowl"><path d="M3.2 12h17.6a8.8 8.8 0 0 1-17.6 0z"/><path d="M8.5 9c-.8-1.2-.5-2.4.4-3.4M12 8.6c-.9-1.6-.5-3.2.6-4.6M15.5 9c-.8-1.2-.5-2.4.4-3.4"/></g>
+    <g id="i-cup"><path d="M5.5 5.5h13l-6.5 7v6"/><path d="M9 18.5h6"/></g>
+    <g id="i-wifi"><path d="M4.5 11a10.5 10.5 0 0 1 15 0M8 14.5a5.6 5.6 0 0 1 8 0"/><circle cx="12" cy="18.3" r="1.1" fill="currentColor" stroke="none"/></g>
+    <g id="i-doc"><path d="M7 3.5h6.8L18 7.8v12.7H7z"/><path d="M13.5 3.5v4.6H18M10 13h5M10 16.5h5"/></g>
+    <g id="i-leaf"><path d="M20 4C9.5 4 4 9.5 4 20c10.5 0 16-5.5 16-16z"/><path d="M4.5 19.5c5.5-5.5 9.5-8 13.5-12"/></g>
+    <g id="i-dots"><circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.5" fill="currentColor" stroke="none"/></g>
+    <g id="i-arrow"><path d="M4 12h15M13.5 6.5L20 12l-6.5 5.5"/></g>
+    <g id="i-link"><path d="M10.6 13.4a4.2 4.2 0 0 0 5.9 0l2.8-2.8a4.2 4.2 0 0 0-5.9-5.9L12 6.1"/><path d="M13.4 10.6a4.2 4.2 0 0 0-5.9 0L4.7 13.4a4.2 4.2 0 0 0 5.9 5.9L12 17.9"/></g>
+    <g id="i-pin"><path d="M12 21c4.2-4.6 6.5-8 6.5-10.8A6.5 6.5 0 0 0 5.5 10.2C5.5 13 7.8 16.4 12 21z"/><circle cx="12" cy="10.2" r="2.3"/></g>
+    <g id="i-clock"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g>
+    <g id="i-tag"><path d="M12.6 3.5H20v7.4l-8.7 8.7a1.6 1.6 0 0 1-2.3 0l-5.1-5.1a1.6 1.6 0 0 1 0-2.3z"/><circle cx="16.4" cy="7.6" r="1.3"/></g>
+    <g id="i-users"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 5.8a3.2 3.2 0 0 1 0 5.4M17.5 14.9c1.8.6 3 2.4 3 4.6"/></g>
+    <g id="i-plus"><path d="M12 5.5v13M5.5 12h13"/></g>
+    <g id="i-search"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.5 15.5l4.5 4.5"/></g>
+    <g id="i-pencil"><path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14.5 5.5l4 4"/></g>
+    <g id="i-trash"><path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.5h9.2L17.5 7"/></g>
+    <g id="i-x"><path d="M6 6l12 12M18 6L6 18"/></g>
+    <g id="i-sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8"/></g>
+    <g id="i-moon"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.7 6.7 0 0 0 9.7 9.7z"/></g>
+    <g id="i-download"><path d="M12 3.5v11M7.5 10.5l4.5 4.5 4.5-4.5M4.5 19.5h15"/></g>
+    <g id="i-upload"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4.5 19.5h15"/></g>
+    <g id="i-sheet"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M9 9.5v10M3.5 14.5h17"/></g>
+    <g id="i-sparkle"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></g>
+    <g id="i-flag"><path d="M6 21V4.5h12l-2.5 4.2L18 13H6"/></g>
+  </defs>
+</svg>
+
+<!-- ================= top nav ================= -->
+<header class="topnav">
+  <div class="nav-inner">
+    <div class="brand">
+      <span class="brand-mark"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plane"/></svg></span>
+      <span class="brand-text">
+        <b id="tripName">Thailand</b>
+        <small id="tripDates">—</small>
+      </span>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="dashboard"><svg class="ic" viewBox="0 0 24 24"><use href="#i-grid"/></svg><span>Overview</span></button>
+      <button class="tab" data-view="expenses"><svg class="ic" viewBox="0 0 24 24"><use href="#i-wallet"/></svg><span>Expenses</span></button>
+      <button class="tab" data-view="bookings"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plane"/></svg><span>Bookings</span></button>
+      <button class="tab" data-view="people"><svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg><span>People</span></button>
+      <button class="tab" data-view="itinerary"><svg class="ic" viewBox="0 0 24 24"><use href="#i-calendar"/></svg><span>Itinerary</span></button>
+      <button class="tab" data-view="checklist"><svg class="ic" viewBox="0 0 24 24"><use href="#i-check-circle"/></svg><span>Checklist</span></button>
+      <button class="tab" data-view="settings"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sliders"/></svg><span>Settings</span></button>
+    </nav>
+
+    <div class="nav-right">
+      <div class="segment cur-seg" id="curSeg" title="Currency to show totals in">
+        <button data-cur="INR">₹</button><button data-cur="THB">฿</button>
+      </div>
+      <button class="rate-chip" id="rateChip" title="Exchange rate — click to change"></button>
+      <button class="icon-btn round" id="themeBtn" title="Theme"><svg class="ic" viewBox="0 0 24 24"><use href="#i-moon"/></svg></button>
+      <button class="btn brand" id="btnQuickExpense"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg><span>Expense</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div id="updateBar"></div>
+
+  <div class="page-head">
+    <div>
+      <h1 id="viewTitle">Overview</h1>
+      <p class="sub" id="viewSub">Where the money and the plans stand</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" id="btnQuickBooking" title="Add booking" aria-label="Add booking"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg><span>Add booking</span></button>
+    </div>
+  </div>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="view active" id="view-dashboard">
+    <div class="hero" id="hero"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="grid grid-12-8">
+      <div class="card" id="cardBudget"></div>
+      <div class="card" id="cardCats"></div>
+    </div>
+    <div class="card" id="cardDaily"></div>
+    <div class="grid grid-2">
+      <div class="card" id="cardNext"></div>
+      <div class="card" id="cardRecent"></div>
+    </div>
+  </section>
+
+  <!-- ============ EXPENSES ============ -->
+  <section class="view" id="view-expenses">
+    <div class="filterbar">
+      <div class="searchbox">
+        <svg class="ic" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+        <input type="search" id="expSearch" placeholder="Search a note, place or person">
+      </div>
+      <select id="expPayerFilter" class="mini-select"><option value="">Everyone</option></select>
+      <div class="bar-actions"><button class="btn" id="btnPdfExpense" title="Fill the form from a PDF"><svg class="ic" viewBox="0 0 24 24"><use href="#i-doc"/></svg><span>From PDF</span></button>
+      <button class="btn brand" id="btnAddExpense"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg><span>Add expense</span></button></div>
+    </div>
+    <div class="catstrip" id="catStrip"></div>
+    <div class="tiles tiles-3" id="expTiles"></div>
+    <div class="card" id="cardCash"></div>
+    <div class="card" id="cardSettle"></div>
+    <div class="card" id="cardExpList"></div>
+  </section>
+
+  <!-- ============ BOOKINGS ============ -->
+  <section class="view" id="view-bookings">
+    <div class="filterbar">
+      <div class="chips" id="bookTypeChips">
+        <button class="chip active" data-type=""><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg>Everything</button>
+        <button class="chip" data-type="flight"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plane"/></svg>Flights</button>
+        <button class="chip" data-type="hotel"><svg class="ic" viewBox="0 0 24 24"><use href="#i-bed"/></svg>Stays</button>
+        <button class="chip" data-type="transport"><svg class="ic" viewBox="0 0 24 24"><use href="#i-car"/></svg>Transport</button>
+        <button class="chip" data-type="activity"><svg class="ic" viewBox="0 0 24 24"><use href="#i-ticket"/></svg>Activities</button>
+        <button class="chip" data-type="other"><svg class="ic" viewBox="0 0 24 24"><use href="#i-dots"/></svg>Other</button>
+        <button class="chip chip-mine" id="btnMineOnly"></button>
+      </div>
+      <div class="bar-actions"><button class="btn" id="btnPdfBooking" title="Fill the form from a PDF"><svg class="ic" viewBox="0 0 24 24"><use href="#i-doc"/></svg><span>From PDF</span></button>
+      <button class="btn brand" id="btnAddBooking"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg><span>Add booking</span></button></div>
+    </div>
+    <div class="tiles tiles-4" id="bookTiles"></div>
+    <div id="bookList"></div>
+  </section>
+
+  <!-- ============ PEOPLE ============ -->
+  <section class="view" id="view-people">
+    <div class="tiles tiles-3" id="peopleTiles"></div>
+    <div class="card" id="cardSettlePlan"></div>
+    <div class="people-grid" id="peopleGrid"></div>
+  </section>
+
+  <!-- ============ ITINERARY ============ -->
+  <section class="view" id="view-itinerary">
+    <div class="card" id="cardMap"></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <!-- ============ CHECKLIST ============ -->
+  <section class="view" id="view-checklist">
+    <div class="grid grid-12-8">
+      <div>
+        <div class="card">
+          <div class="card-head"><h2>Add to the list</h2></div>
+          <form class="inline-form" id="clForm">
+            <input id="clText" placeholder="Something not to forget…" autocomplete="off">
+            <select id="clGroup">
+              <option value="Documents">Documents</option>
+              <option value="Money">Money</option>
+              <option value="Packing">Packing</option>
+              <option value="Before leaving">Before leaving</option>
+              <option value="In Thailand">In Thailand</option>
+            </select>
+            <button class="btn brand" type="submit">Add</button>
+          </form>
+        </div>
+        <div id="clGroups"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Trip notes</h2><span class="hint">saved as you type</span></div>
+        <textarea id="notes" class="notes" placeholder="Scam warnings, Grab vs taxi, SIM plan, places to eat, phrases…"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="view" id="view-settings">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-head"><h2>Trip</h2></div>
+        <div class="form-grid">
+          <label class="span2">Trip name<input id="setName" placeholder="Thailand"></label>
+          <label>Start date<input type="date" id="setStart"></label>
+          <label>End date<input type="date" id="setEnd"></label>
+          <label><span>Total budget <i id="setBudgetCur" class="hint"></i></span><input type="number" id="setBudget" min="0" step="100"></label>
+          <label><span>My budget <i class="hint">(optional — defaults to an even share)</i></span><input type="number" id="setMyBudget" min="0" step="100"></label>
+          <label>Travellers<input id="setPeople" placeholder="Alex, Sam, Jo"></label>
+        </div>
+        <button class="btn brand" id="btnSaveSettings">Save trip settings</button>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head"><h2>Currency &amp; rate</h2><span class="hint" id="rateAge">—</span></div>
+          <label class="stack">Show all totals in
+            <div class="segment cur-seg" id="curSeg2">
+              <button data-cur="INR">₹ Rupees</button><button data-cur="THB">฿ Baht</button>
+            </div>
+          </label>
+          <div class="rate-line" id="rateLine"></div>
+          <div class="form-grid" style="margin-bottom:10px">
+            <label>1 THB = ? INR<input type="number" id="setRate" min="0" step="0.0001"></label>
+            <label>Daily auto-update
+              <select id="setRateAuto"><option value="1">On</option><option value="0">Off</option></select></label>
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="btnRateNow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Fetch live rate</span></button>
+            <button class="btn brand" id="btnSaveRate">Save rate settings</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Appearance</h2></div>
+          <div class="segment" id="themeSeg">
+            <button data-theme="light"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg>Light</button>
+            <button data-theme="dark"><svg class="ic" viewBox="0 0 24 24"><use href="#i-moon"/></svg>Dark</button>
+            <button data-theme="system"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg>System</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Your data</h2></div>
+          <p class="hint block">Everything lives in this browser only — nothing is uploaded. Export a backup before clearing browser data, and import it on your phone to carry the trip with you.</p>
+          <div class="btn-row">
+            <button class="btn" id="btnExport"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Export JSON</span></button>
+            <button class="btn" id="btnImport"><svg class="ic" viewBox="0 0 24 24"><use href="#i-upload"/></svg><span>Import JSON</span></button>
+            <button class="btn" id="btnCSV"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sheet"/></svg><span>Expenses CSV</span></button>
+            <button class="btn" id="btnFromFile"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Reload trip file</span></button>
+            <button class="btn danger" id="btnReset"><svg class="ic" viewBox="0 0 24 24"><use href="#i-trash"/></svg><span>Erase all</span></button>
+          </div>
+          <input type="file" id="fileInput" accept=".json" hidden>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Live sync</h2><span class="hint" id="syncStatus">off</span></div>
+          <p class="hint block" id="syncBlurb">Everyone who holds the trip key shares one live ledger.
+            Log an expense and it appears on the others' phones in about a second.</p>
+          <div id="signInBox">
+            <div id="whoami" class="whoami"></div>
+            <div id="gsiButton"></div>
+          </div>
+          <div class="btn-row" style="margin-bottom:10px">
+            <button class="btn" id="btnSyncTest">Test connection</button>
+          </div>
+          <pre id="syncDiag" class="syncdiag"></pre>
+          <div id="syncSetup">
+            <div id="meRow"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Share with the group</h2><span class="hint">no account needed</span></div>
+          <p class="hint block">Copy a share code and paste it in the group chat. Whoever pastes it into
+            their own copy gets your expenses and withdrawals merged in — nothing is overwritten.</p>
+          <div class="btn-row">
+            <button class="btn" id="btnCopyCode"><svg class="ic" viewBox="0 0 24 24"><use href="#i-upload"/></svg><span>Copy my share code</span></button>
+            <button class="btn" id="btnPasteCode"><svg class="ic" viewBox="0 0 24 24"><use href="#i-download"/></svg><span>Paste a share code</span></button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Categories</h2><span class="hint">colour comes from the palette</span></div>
+          <div class="tag-editor" id="catEditor"></div>
+          <form class="inline-form" id="catForm">
+            <input id="catNew" placeholder="New category…" autocomplete="off">
+            <button class="btn" type="submit">Add</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- mobile bottom nav -->
+<nav class="bottomnav" id="bottomnav"></nav>
+
+<!-- sign-in gate: the app is not usable until we know who you are -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <span class="brand-mark"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plane"/></svg></span>
+    <h1>Thailand</h1>
+    <p class="gate-sub">14&ndash;24 November 2026</p>
+    <p class="gate-blurb">Five of you share one live ledger. Sign in with the Google
+      account you were invited with — everything you log appears on the others' phones.</p>
+    <div id="gateBtn" class="gate-btn"></div>
+    <p class="gate-foot" id="gateFoot">Only invited accounts can open this trip.</p>
+  </div>
+</div>
+
+<!-- quick add -->
+<div class="sheet-backdrop" id="quick" hidden>
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="qamount"><span id="qCur">฿</span><b id="qVal">0</b></div>
+      <div class="segment cur-seg" id="qCurSeg">
+        <button data-qcur="THB">฿</button><button data-qcur="INR">₹</button>
+      </div>
+      <button class="icon-btn round" id="qClose"><svg class="ic" viewBox="0 0 24 24"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="qpresets" id="qPresets"></div>
+    <div class="qpad" id="qPad"></div>
+    <div class="qrow">
+      <label>Paid by<select id="qPayer"></select></label>
+      <label>Split<select id="qSplit">
+        <option value="shared">Everyone</option>
+        <option value="personal">Just them</option>
+      </select></label>
+      <label>With<select id="qMethod">
+        <option>Cash</option><option>Card</option><option>UPI/Wallet</option><option>Prepaid/Forex</option>
+      </select></label>
+    </div>
+    <div class="qfoot">
+      <button class="btn ghost" id="qFull">Detailed form</button>
+      <button class="btn brand" id="qSave">Save expense</button>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab" title="Quick add expense"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
+
+<!-- modal -->
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Add</h2>
+      <button class="icon-btn round" id="modalClose"><svg class="ic" viewBox="0 0 24 24"><use href="#i-x"/></svg></button>
+    </div>
+    <form id="modalForm">
+      <div id="modalBody" class="form-grid"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" id="modalCancel">Cancel</button>
+        <button type="submit" class="btn brand" id="modalSave">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="firebase-config.js"></script>
+<script src="map-data.js"></script>
+<script src="trip-data.js"></script>
+<script src="firebase-auth.js"></script>
+<script src="firebase-sync.js"></script>
+<script src="pdf-import.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

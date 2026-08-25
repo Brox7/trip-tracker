@@ -1,0 +1,19 @@
+# Anything holding the real trip stays out of the repo.
+# The itinerary is not deployed either — it lives in the database behind
+# Google sign-in — but these local copies still describe the whole trip.
+trip-data.js
+trip-backup.json
+dist/
+
+# The live allowlist holds five real Gmail addresses. Publishing other
+# people's email addresses is not yours to do, so the repo carries
+# database.rules.example.json instead and this file stays local.
+database.rules.json
+
+# Personal working notes: who owes whom, what is still unbooked, real amounts.
+PARKED.md
+
+.DS_Store
+node_modules/
+*.log
+.firebase/

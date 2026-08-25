@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "trips": {
+      // Only Google sign-in is enabled, so an address here is already proven by
+      // Google. We do not additionally require the email_verified claim, which
+      // can be absent depending on how the account was first created.
+      // One trip, one list of people. Access is who you are signed in as —
+      // there is no shared key any more, so a forwarded link is worthless.
+      // To add someone: add their address here and `firebase deploy --only database`.
+      // Copy this file to database.rules.json and put the real addresses in.
+      // That copy is gitignored so nobody's inbox ends up in a public repo.
+      "thailand-november-2026-trip": {
+        ".read":  "auth != null && (auth.token.email == 'you@gmail.com' || auth.token.email == 'friend-two@gmail.com' || auth.token.email == 'friend-three@gmail.com' || auth.token.email == 'friend-four@gmail.com' || auth.token.email == 'friend-five@gmail.com')",
+        ".write": "auth != null && (auth.token.email == 'you@gmail.com' || auth.token.email == 'friend-two@gmail.com' || auth.token.email == 'friend-three@gmail.com' || auth.token.email == 'friend-four@gmail.com' || auth.token.email == 'friend-five@gmail.com')",
+
+        "expenses":  { "$id": { ".validate": "newData.hasChildren(['id','amount','cur','date'])" } },
+        "bookings":  { "$id": { ".validate": "newData.hasChildren(['id','type','title'])" } },
+        "cash":      { "$id": { ".validate": "newData.hasChildren(['id','person','thb'])" } },
+        "checklist": { "$id": { ".validate": "newData.hasChildren(['id','text'])" } },
+        "notes":     { ".validate": "newData.isString() && newData.val().length < 20000" },
+        "settings":  { ".validate": "newData.hasChildren(['people'])" },
+        // scratch space the app's "Test connection" button writes to
+        "diagnostic": {}
+      }
+    }
+  }
+}
