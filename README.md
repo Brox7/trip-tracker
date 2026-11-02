@@ -32,15 +32,28 @@ diff against a serialised snapshot decides what to upload.
 node .claude/serve.js
 ```
 
-Then open <http://localhost:8787>. That is the whole toolchain — there is
-nothing to install and nothing to compile.
+Then open **<http://localhost:8787/?demo>**. That is the whole toolchain —
+nothing to install, nothing to compile.
+
+The `?demo` matters. Without it you hit a sign-in gate for a trip you are not
+invited to, because `firebase-config.js` points at whichever Firebase project
+this copy was deployed from. Demo mode skips all of that: sample data, no
+sign-in, no database, stored under its own key in your browser. Click around,
+edit anything, break whatever you like — three separate guards stop it from
+touching a real trip (its own storage key, sync never starts, and `save()`
+refuses to push). Leave it again with `?nodemo`.
 
 Sign-in is a hard gate: signed out, the app is unusable rather than
 half-usable. That is deliberate. An earlier version let you log expenses into a
 local copy that was wiped the first time the device synced, which is a worse
 outcome than being locked out.
 
+To do anything past looking around — real sync, more than one person — you need
+your own Firebase project. That is the next section.
+
 ## Making it your own trip
+
+Roughly fifteen minutes, most of it clicking through the Firebase console.
 
 1. Create a Firebase project with Realtime Database and Google sign-in enabled.
 2. Put your project's values in `firebase-config.js`. These are identifiers, not
@@ -51,7 +64,10 @@ outcome than being locked out.
    email addresses, and those are not yours to publish.
 4. Add the same addresses to `settings/members` in the database, mapping each to
    a traveller name (Firebase keys cannot contain `.`, so store `a@b,com`).
-5. `./deploy.sh`
+5. Add your origins (`http://localhost:8787` and your hosting domain) to the
+   OAuth client's **Authorized JavaScript origins** in the Google Cloud
+   console, or sign-in fails with `origin_mismatch`.
+6. `./deploy.sh`
 
 ## How it fits together
 

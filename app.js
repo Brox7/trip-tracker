@@ -1,9 +1,27 @@
 /* =========================================================
    Thailand Trip Tracker
-   Local-only: state lives in localStorage under KEY.
-   No dependencies, no network, no build step.
+   State lives in localStorage under KEY and syncs to Firebase.
+   No dependencies, no build step.
    ========================================================= */
-const KEY = 'th-trip-v1';
+
+/* ---------------- demo mode ----------------
+   Open the app with ?demo and it runs entirely on its own: no sign-in, no
+   database, sample data to poke at. This is how someone who has just cloned
+   the repo can look around without standing up a Firebase project first.
+
+   Three things keep it from ever touching a real trip: it stores under its
+   own key, sync is never started, and save() refuses to push. ?nodemo turns
+   it back off. */
+const DEMO = (() => {
+  try {
+    const q = new URL(location.href).searchParams;
+    if (q.has('nodemo')) { localStorage.removeItem('th-trip-demo-on'); return false; }
+    if (q.has('demo'))   { localStorage.setItem('th-trip-demo-on', '1'); return true; }
+    return localStorage.getItem('th-trip-demo-on') === '1';
+  } catch (e) { return false; }
+})();
+
+const KEY = DEMO ? 'th-trip-demo' : 'th-trip-v1';
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ---------- taxonomy: category -> icon + palette slot ---------- */
@@ -66,16 +84,58 @@ function blank() {
     notes:''
   };
 }
+/* Sample data for ?demo. Deliberately exercises the parts that are easy to get
+   wrong: a shared cost, a personal one, a cost split between only some people,
+   both currencies, and a booking still marked as an idea. */
+function demoTrip() {
+  const t = blank();
+  Object.assign(t.settings, {
+    name: 'Sample trip', start: '2026-11-14', end: '2026-11-24',
+    people: ['Sam', 'Alex', 'Jo'], me: 'Sam',
+    budget: 150000, budgetCur: 'INR', base: 'THB'
+  });
+  t.bookings = [
+    { id:'demo1', type:'flight', title:'BLR → BKK · 6E 1051', status:'paid',
+      from:'BLR', to:'BKK', city:'Bangkok', vendor:'IndiGo',
+      start:'2026-11-14T09:20', end:'2026-11-14T14:50',
+      cost:16726, cur:'INR', paidBy:'Sam', bookedBy:'Sam', split:'personal' },
+    { id:'demo2', type:'hotel', title:'Riverside apartment', status:'paid',
+      city:'Bangkok', vendor:'Airbnb',
+      start:'2026-11-14T15:00', end:'2026-11-17T11:00',
+      cost:32000, cur:'INR', paidBy:'Alex', bookedBy:'Alex', split:'shared' },
+    { id:'demo3', type:'activity', title:'Phi Phi speedboat day trip', status:'hold',
+      city:'Krabi', vendor:'Klook', start:'2026-11-21T08:00',
+      cost:0, cur:'THB', split:'shared' }
+  ];
+  t.expenses = [
+    { id:'demo4', date:'2026-11-14', amount:640, cur:'THB', cat:'Food',
+      note:'Pad thai at Thipsamai', payer:'Sam', method:'Cash', split:'shared' },
+    { id:'demo5', date:'2026-11-15', amount:1200, cur:'THB', cat:'Transport',
+      note:'Grab to the Grand Palace', payer:'Jo', method:'UPI/Wallet', split:'shared' },
+    { id:'demo6', date:'2026-11-15', amount:900, cur:'THB', cat:'Spa & Massage',
+      note:'Thai massage — Sam and Jo only', payer:'Jo', method:'Cash',
+      split:'custom', with:['Sam','Jo'] },
+    { id:'demo7', date:'2026-11-16', amount:450, cur:'THB', cat:'Shopping',
+      note:'Sunglasses', payer:'Alex', method:'Card', split:'personal' }
+  ];
+  t.cash = [
+    { id:'demo8', person:'Sam', date:'2026-11-14', thb:5000, paidHome:11800, note:'Airport ATM' }
+  ];
+  t.notes = 'This is sample data. Open with ?nodemo to leave demo mode.';
+  return t;
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return blank();                       // a fresh device fills itself from the database
+    if (!raw) return DEMO ? demoTrip() : blank();    // a real device fills itself from the database
     const d = JSON.parse(raw);
     return Object.assign(blank(), d, { settings: Object.assign(blank().settings, d.settings||{}) });
   } catch (e) { console.warn('unreadable save, starting fresh', e); return blank(); }
 }
 function save() {
   localStorage.setItem(KEY, JSON.stringify(S));
+  if (DEMO) return;                                 // demo data never leaves the browser
   if (!applyingRemote && window.TripSync) window.TripSync.pushChanges(S);
 }
 let applyingRemote = false;
@@ -1839,6 +1899,15 @@ function renderIdentityBar() {
    skipped when sign-in already answers it. The app-version prompt is separate
    and inserts itself after this element. */
 function renderUpdateBar() {
+  if (DEMO) {
+    $('#updateBar').innerHTML = `<div class="updatebar">
+      ${ico('sparkle')}
+      <span class="msg"><b>Demo mode</b>
+        <small>Sample data, kept in this browser only. Nothing is signed in and nothing
+        syncs — edit anything you like, no real trip can be affected.</small></span>
+      <span class="acts"><a class="btn ghost" href="?nodemo">Leave demo</a></span></div>`;
+    return;
+  }
   if (!renderIdentityBar()) $('#updateBar').innerHTML = '';
 }
 
@@ -2058,6 +2127,11 @@ function onSignedIn(err, email) {
 }
 
 function applyGate() {
+  if (DEMO) {                                       // nothing to protect, so no door
+    const g = $('#gate'); if (g) g.hidden = true;
+    document.body.classList.remove('gated');
+    return;
+  }
   if (!TA) return;
   const locked = !TA.signedIn();
   const gate = $('#gate');
@@ -2184,4 +2258,4 @@ applyGate();
 checkForUpdate();
 setInterval(checkForUpdate, 10 * 60 * 1000);   // every ten minutes
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
-if (TS) { TS.loadOutbox(); TS.primeSnapshot(S); syncStart(); }
+if (TS && !DEMO) { TS.loadOutbox(); TS.primeSnapshot(S); syncStart(); }
