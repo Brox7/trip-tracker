@@ -116,6 +116,22 @@ const sharedSettings = st => {
   return out;
 };
 
+/* Maps keyed by something other than an `id` field — day plans are keyed by
+   date. Diffing per key matters: as one blob, two people editing two different
+   days in the same minute meant the later write erased the earlier one. */
+function diffMap(kind, obj) {
+  const before = Sync.snap[kind] || new Map();
+  const now = new Map();
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    if (!k || v == null) return;
+    const ser = JSON.stringify(v);
+    now.set(k, ser);
+    if (ser !== before.get(k)) queue('PUT', `${kind}/${k}`, v);
+  });
+  before.forEach((_, k) => { if (!now.has(k)) queue('DELETE', `${kind}/${k}`); });
+  Sync.snap[kind] = now;
+}
+
 function pushChanges(state) {
   if (!syncOn()) return;
 
@@ -135,11 +151,12 @@ function pushChanges(state) {
     Sync.snap[kind] = now;
   });
 
+  diffMap('days', state.days);
+
   const flat = {
     checklist: (state.checklist || []).reduce((a, i) => (a[i.id] = i, a), {}),
     settings: sharedSettings(state.settings),
     notes: state.notes || '',
-    days: state.days || {},
     removed: state.removed || []
   };
   Object.entries(flat).forEach(([k, v]) => {
@@ -157,17 +174,18 @@ function primeSnapshot(state) {
   Sync.snap.checklist = JSON.stringify((state.checklist || []).reduce((a, i) => (a[i.id] = i, a), {}));
   Sync.snap.settings  = JSON.stringify(sharedSettings(state.settings));
   Sync.snap.notes     = JSON.stringify(state.notes || '');
-  Sync.snap.days      = JSON.stringify(state.days || {});
+  Sync.snap.days      = new Map(Object.entries(state.days || {})
+    .filter(([, v]) => v != null).map(([k, v]) => [k, JSON.stringify(v)]));
   Sync.snap.removed   = JSON.stringify(state.removed || []);
 }
 
 /* Records with writes still queued. A pull must not overwrite these, or an
    edit made just before a reload is lost. */
-function pendingIds() {
+function pendingIds(kind) {
   const out = new Set();
   Sync.outbox.forEach(j => {
     const parts = String(j.path).split('/');
-    if (parts.length === 2) out.add(parts[1]);
+    if (parts.length === 2 && (!kind || parts[0] === kind)) out.add(parts[1]);
   });
   return out;
 }
@@ -250,7 +268,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('offline', () => setStatus('offline'));
   window.TripSync = {
     Sync, syncOn, loadOutbox,
-    pushChanges, primeSnapshot, pullOnce, startStream, stopStream, flush,
+    pushChanges, primeSnapshot, pullOnce, startStream, stopStream, flush, diffMap,
     hasSynced, markSynced, testConnection, pendingIds
   };
 }

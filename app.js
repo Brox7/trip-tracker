@@ -107,6 +107,15 @@ function demoTrip() {
       city:'Krabi', vendor:'Klook', start:'2026-11-21T08:00',
       cost:0, cur:'THB', split:'shared' }
   ];
+  /* one planned day, so the Itinerary screen shows what a day plan looks like
+     rather than eleven blank rows */
+  t.days = {
+    '2026-11-15': { title: 'Temples, then the river',
+      lines: [['Morning', 'Grand Palace and Wat Pho \u2014 go early, it gets hot'],
+              ['14:00', 'river boat to Wat Arun'],
+              ['Evening', 'Thipsamai for pad thai'],
+              ['', 'Cover your knees and shoulders or they will turn you away']] }
+  };
   t.expenses = [
     { id:'demo4', date:'2026-11-14', amount:640, cur:'THB', cat:'Food',
       note:'Pad thai at Thipsamai', payer:'Sam', method:'Cash', split:'shared' },
@@ -481,7 +490,7 @@ function renderModalFields(fields, values) {
           chosen.has(p) ? ' checked' : ''}><i class="dotp" style="background:${personColor(p)}"></i>${esc(p)}</label>`
       ).join('')}</div>`;
     } else if (f.type === 'textarea') {
-      input = `<textarea name="${f.key}" rows="3" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea>`;
+      input = `<textarea name="${f.key}" rows="${f.rows||3}" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea>`;
     } else {
       input = `<input type="${f.type||'text'}" name="${f.key}" value="${esc(v)}" placeholder="${esc(f.ph||'')}"
         ${f.step?`step="${f.step}"`:''} ${f.req?'required':''}>`;
@@ -1569,6 +1578,42 @@ function renderMap() {
     </div>`;
 }
 
+/* ---------------- editing a day plan ----------------
+   A plan is a title plus label/detail pairs. In the editor those are plain
+   "Label: detail" lines, which is how people write them anyway. A colon inside
+   a time ("9:30") is not a separator — hence the (?!\d). */
+const LABEL_MAX = 20;                       // longer than this is prose, not a label
+const planToText = p => ((p && p.lines) || []).map(([k, v]) => k ? `${k}: ${v}` : v).join('\n');
+function textToPlanLines(text) {
+  return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.search(/:(?!\d)/);
+    /* Labels render into an 86px column, so a long one is really a sentence
+       that happens to contain a colon. Leave those as a single detail line. */
+    return (i < 0 || i > LABEL_MAX) ? ['', l] : [l.slice(0, i).trim(), l.slice(i + 1).trim()];
+  });
+}
+
+function editDay(iso) {
+  const plan = (S.days || {})[iso] || null;
+  openModal(prettyLong(iso), [
+    { key:'title', label:'What this day is', span:true, ph:'Koh Samui \u2192 Krabi' },
+    { key:'lines', label:'Plan \u2014 one "Label: detail" per line', type:'textarea', rows:7, span:true,
+      ph:'Morning: ferry from Samui\nAfternoon: check in at Ao Nang\nDinner: night market' }
+  ], { title: plan ? plan.title || '' : '', lines: planToText(plan) }, d => {
+    const title = String(d.title || '').trim();
+    const lines = textToPlanLines(d.lines);
+    S.days = S.days || {};
+    if (!title && !lines.length) {
+      if (!S.days[iso]) return;
+      delete S.days[iso];                       // the diff turns this into a DELETE
+      save(); render(); toast('Day cleared');
+      return;
+    }
+    S.days[iso] = { title, lines, edited: new Date().toISOString() };
+    save(); render(); toast(plan ? 'Day updated' : 'Day planned');
+  });
+}
+
 /* ============================== render: itinerary ============================== */
 function renderItinerary() {
   renderMap();
@@ -1594,6 +1639,8 @@ function renderItinerary() {
         ${isToday ? `<span class="badge soon">today</span>` : ''}
         <span class="m">${plan ? esc(plan.title) : ''}${
           plan && items.length ? ' · ' : ''}${items.length ? `${items.length} booked or planned` : (plan ? '' : 'nothing planned')}</span>
+        <button type="button" class="icon-btn tl-edit" data-edit-day="${d}"
+          title="${plan ? 'Edit this day' : 'Plan this day'}">${ico(plan ? 'pencil' : 'plus')}</button>
       </div>
       <div class="tl-body">
         ${plan ? `<div class="tl-plan">
@@ -1789,7 +1836,7 @@ document.addEventListener('click', e => {
   const chip = e.target.closest('#bookTypeChips .chip');
   if (chip) { bookFilter = chip.dataset.type || ''; return renderBookings(); }
 
-  const t = e.target.closest('[data-edit-exp],[data-del-exp],[data-edit-book],[data-del-book],[data-del-cl],[data-del-cat],[data-edit-cash],[data-del-cash]');
+  const t = e.target.closest('[data-edit-exp],[data-del-exp],[data-edit-book],[data-del-book],[data-del-cl],[data-del-cat],[data-edit-cash],[data-del-cash],[data-edit-day]');
   if (!t) return;
   const d = t.dataset;
   if (d.editExp)  editExpense(d.editExp);
@@ -1798,6 +1845,7 @@ document.addEventListener('click', e => {
   if (d.delBook)  delBooking(d.delBook);
   if (d.delCl)    { e.preventDefault(); S.checklist = S.checklist.filter(i => i.id !== d.delCl); save(); render(); }
   if (d.delCat)   { S.settings.categories = S.settings.categories.filter(c => c !== d.delCat); save(); render(); }
+  if (d.editDay)  editDay(d.editDay);
   if (d.editCash) editCash(d.editCash);
   if (d.delCash)  delCash(d.delCash);
 });
@@ -1991,7 +2039,17 @@ function mergeTree(tree) {
     const keep = {}; localOnly.forEach(k => { if (S.settings[k] !== undefined) keep[k] = S.settings[k]; });
     S.settings = Object.assign({}, S.settings, tree.settings, keep);
   }
-  if (tree.days && Object.keys(tree.days).length) S.days = tree.days;
+  if (tree.days) {
+    const pendingDays = TS ? TS.pendingIds('days') : new Set();
+    const out = {};
+    Object.entries(tree.days).forEach(([iso, plan]) => { if (plan) out[iso] = plan; });
+    /* A day we edited more recently than the server's copy stays ours. Any
+       other day the server no longer has was deleted by someone else. */
+    Object.entries(S.days || {}).forEach(([iso, plan]) => {
+      if (pendingDays.has(iso) || localWins(plan, out[iso])) out[iso] = plan;
+    });
+    S.days = out;
+  }
   if (Array.isArray(tree.removed)) S.removed = [...new Set([...(S.removed || []), ...tree.removed])];
   /* honour deletions made on other devices */
   const gone = new Set(S.removed || []);
@@ -2014,7 +2072,12 @@ function adoptTree(tree) {
   });
   if (tree.checklist) S.checklist = Object.values(tree.checklist).filter(Boolean);
   if (typeof tree.notes === 'string') S.notes = tree.notes;
-  if (tree.days) S.days = tree.days;
+  if (tree.days) {
+    const pendingDays = TS ? TS.pendingIds('days') : new Set();
+    const out = Object.assign({}, tree.days);
+    Object.entries(S.days || {}).forEach(([iso, plan]) => { if (pendingDays.has(iso)) out[iso] = plan; });
+    S.days = out;
+  }
   if (Array.isArray(tree.removed)) S.removed = tree.removed;
   if (tree.settings && tree.settings.people) {
     const localOnly = ['theme','base','me','lastQuick','rate','rateAuto','rateLive','rateFetched','rateProvider'];
@@ -2041,7 +2104,12 @@ function applyPath(path, data) {
     if (data === null) { if (i >= 0) list.splice(i, 1); }
     else if (i >= 0) list[i] = data; else list.push(data);
   } else if (kind === 'notes')    { if (typeof data === 'string') S.notes = data; }
-  else if (kind === 'days')       { if (data) S.days = data; }
+  else if (kind === 'days') {
+    S.days = S.days || {};
+    if (!id)                { S.days = data || {}; }
+    else if (data === null) { delete S.days[id]; }
+    else                    { S.days[id] = data; }
+  }
   else if (kind === 'removed')    { if (Array.isArray(data)) S.removed = data; }
   else if (kind === 'settings')   { mergeTree({ settings: data }); }
 }

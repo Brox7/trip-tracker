@@ -110,6 +110,12 @@ against the trip budget, or your share against your own. The invariant that
 keeps it honest: the five personal views must always sum back to the group
 total.
 
+**Day plans sync per day, not in one lump.** The itinerary is editable, and
+`days` is keyed by date rather than by a generated id. It used to upload as a
+single object, which meant two people editing two different days inside the
+same sync window produced one silent overwrite. Each day is now its own write,
+so those two edits no longer touch the same path.
+
 ## Tests
 
 ```bash
@@ -117,8 +123,9 @@ for t in .claude/tests/*.js; do node "$t" || break; done
 ```
 
 Plain node scripts, no runner. They cover the money maths, the sync diff, the
-PDF parser and the ledger migration — which is to say, the places where a bug
-would quietly cost someone real money rather than throw an error.
+PDF parser, the day-plan editor and the ledger migration — which is to say, the
+places where a bug would quietly cost someone real money, or lose something
+they typed, rather than throw an error.
 
 ## Third-party code
 

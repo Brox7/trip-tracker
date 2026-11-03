@@ -462,9 +462,15 @@ svg.ic{overflow:visible}
 }
 .tl-day.is-today .tl-dot{background:var(--brand-grad);color:#fff;border:0;box-shadow:var(--sh-brand)}
 .tl-day.has .tl-dot{color:var(--text)}
-.tl-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;padding-top:8px}
+.tl-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;padding-top:8px;padding-right:42px}
 .tl-head .d{font-size:.98rem;font-weight:650}
 .tl-head .m{font-size:.78rem;color:var(--text-2)}
+/* Pinned rather than flowed: in the header's wrap this button is the thing
+   that gets pushed onto a line of its own, stranded in whitespace.
+   Always drawn, never hover-only — half this app is used on a phone. */
+.tl-edit{position:absolute;right:0;top:6px;opacity:.5}
+.tl-edit:hover{opacity:1}
+@media (hover:none){ .tl-edit{opacity:.75} }
 .tl-body{margin-bottom:18px}
 .tl-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
 .tchip{
