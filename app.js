@@ -1819,8 +1819,11 @@ function go(v) {
     ? `Every ${base() === 'THB' ? 'baht' : 'rupee'}, grouped by day` : VIEWS[v].s;
   /* Only offer "Add booking" where it makes sense. Bookings and Expenses have
      their own add buttons; Checklist, People and Settings have nothing to add
-     a booking to. */
-  const wantsAddBooking = v === 'dashboard' || v === 'itinerary';
+     a booking to. Not the itinerary either: the form defaults to the trip's
+     first day, so a button sitting next to 20 November reads as "add something
+     to this day" and does not do that. Each day has its own button now, and a
+     second bare + beside it only muddles which is which. */
+  const wantsAddBooking = v === 'dashboard';
   $('#btnQuickBooking').style.display = wantsAddBooking ? '' : 'none';
   history.replaceState(null,'','#'+v);
   window.scrollTo({top:0});
