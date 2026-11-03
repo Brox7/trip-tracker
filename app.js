@@ -188,11 +188,14 @@ const myBudgetBase = () => {
 };
 
 /* What one entry costs you, which is nothing at all if you are not on it. */
-function myShare(e) {
+/* One person's slice of an expense. Zero if they are not on it at all —
+   which is different from them not having paid for it. */
+function shareOf(e, who) {
   const on = sharers(e);
-  if (!on.includes(meName())) return 0;
+  if (!on.includes(who)) return 0;
   return toBase(e.amount, e.cur) / (on.length || 1);
 }
+function myShare(e) { return shareOf(e, meName()); }
 
 /* The amount every Overview number is built from, under whichever lens. */
 const lensAmount = e => budgetView() === 'mine' ? myShare(e) : toBase(e.amount, e.cur);
@@ -1164,7 +1167,7 @@ function renderDashboard() {
     ${recent.length ? recent.map(e => expenseRow(e)).join('') : emptyState('wallet','No expenses yet.')}`;
 }
 
-function expenseRow(e, withActions) {
+function expenseRow(e, withActions, lens) {
   const col = catColor(e.cat);
   return `<div class="row">
     <div class="row-ico" style="color:${col};background:color-mix(in oklab,${col} 14%, transparent)">${ico(catMeta(e.cat).ic)}</div>
@@ -1177,7 +1180,8 @@ function expenseRow(e, withActions) {
         : ''}</div>
     </div>
     <div class="row-amt">${fmt(e.amount,e.cur)}${
-      e.cur !== base() ? `<small>${fmtBase(toBase(e.amount,e.cur))}</small>` : ''}</div>
+      lens ? `<small>${shareOf(e, lens) ? 'share ' + fmtBase(shareOf(e, lens)) : 'no share'}</small>`
+      : e.cur !== base() ? `<small>${fmtBase(toBase(e.amount,e.cur))}</small>` : ''}</div>
     ${withActions ? (e.fromBooking
       ? `<div class="row-actions"><button class="icon-btn" data-edit-book="${e.fromBooking}"
            title="Edit the booking">${ico('plane')}</button></div>`
@@ -1210,10 +1214,16 @@ function renderExpenses() {
 
   const list = ledger()
     .filter(e => !expCat || e.cat === expCat)
-    .filter(e => !pf || e.payer === pf)
+    /* Payer OR sharer. Filtering on the payer alone hid every group expense
+       somebody else paid for, which is most of them, and left no way to see
+       what your own share of one was. */
+    .filter(e => !pf || e.payer === pf || sharers(e).includes(pf))
     .filter(e => !q || `${e.note} ${e.cat} ${e.payer} ${e.method}`.toLowerCase().includes(q))
     .sort((a,b) => (b.date||'').localeCompare(a.date||''));
   const filteredTotal = list.reduce((s,e) => s + toBase(e.amount,e.cur), 0);
+  const filteredShare = pf ? list.reduce((s,e) => s + shareOf(e, pf), 0) : 0;
+  const filteredPaid  = pf ? list.reduce((s,e) => s + (e.payer === pf ? toBase(e.amount,e.cur) : 0), 0) : 0;
+  const bal = filteredPaid - filteredShare;
   const spent = spentBase();
   const st = tripStats();
 
@@ -1221,9 +1231,14 @@ function renderExpenses() {
     <div class="tile-top"><span class="tile-ico" style="color:${cssVar('--p'+p)};background:color-mix(in oklab,${cssVar('--p'+p)} 14%, transparent)">${ico(icName)}</span>
     <span class="tile-label">${label}</span></div>
     <div class="tile-val">${val}</div><div class="tile-foot">${foot}</div></div>`;
-  $('#expTiles').innerHTML =
-    tile('search', 6, 'Showing', fmtBase(filteredTotal), `${list.length} of ${all.length} entries`) +
-    tile('wallet', 1, 'Trip total', fmtBase(spent), fmtOther(spent)) +
+  $('#expTiles').innerHTML = (pf
+      ? tile('users', 6, `${esc(pf)}'s share`, fmtBase(filteredShare),
+             `${list.length} entries \u00b7 ${fmtBase(filteredTotal)} billed in all`) +
+        tile('wallet', 1, `${esc(pf)} paid`, fmtBase(filteredPaid),
+             Math.abs(bal) < 0.5 ? 'square, within this filter'
+               : `${bal > 0 ? 'ahead by' : 'behind by'} ${fmtBase(Math.abs(bal))} here`)
+      : tile('search', 6, 'Showing', fmtBase(filteredTotal), `${list.length} of ${all.length} entries`) +
+        tile('wallet', 1, 'Trip total', fmtBase(spent), fmtOther(spent))) +
     tile('clock', 3, 'Today', fmtBase(spentOn(todayISO())),
       st.phase === 'during' ? `day ${st.elapsed} of ${st.total}` : 'trip not running');
 
@@ -1285,11 +1300,12 @@ function renderExpenses() {
   }
   const groups = {};
   list.forEach(e => (groups[e.date] = groups[e.date] || []).push(e));
-  $('#cardExpList').innerHTML = `<div class="card-head"><h2>Expenses</h2><span class="hint">${list.length} shown</span></div>` +
+  $('#cardExpList').innerHTML = `<div class="card-head"><h2>Expenses</h2><span class="hint">${
+      pf ? `${esc(pf)} is on ${list.length} \u00b7 day totals are their share` : `${list.length} shown`}</span></div>` +
     Object.keys(groups).sort().reverse().map(date => {
-      const tot = groups[date].reduce((s,e) => s + toBase(e.amount,e.cur), 0);
+      const tot = groups[date].reduce((s,e) => s + (pf ? shareOf(e, pf) : toBase(e.amount,e.cur)), 0);
       return `<div class="day-head"><span>${prettyDay(date)}${date===todayISO()?' · today':''}</span><b>${fmtBase(tot)}</b></div>` +
-        groups[date].map(e => expenseRow(e,true)).join('');
+        groups[date].map(e => expenseRow(e,true,pf)).join('');
     }).join('');
 }
 
