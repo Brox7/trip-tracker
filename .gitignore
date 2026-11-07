@@ -16,3 +16,6 @@ PARKED.md
 node_modules/
 *.log
 .firebase/
+my-itinerary.json
+apply-itinerary.js
+list-bookings.js
